@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Penyisipan Watermark pada Gambar</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #16a085;
+            border: none;
+            border-radius: 5px;
+            color: #ecf0f1;
+            cursor: pointer;
+        }
+        input[type="file"]::file-selector-button {
+            margin-right: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            border: none;
+            border-radius: 5px;
+            color: #ecf0f1;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        canvas {
+            margin-top: 20px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aplikasi Penyisipan Watermark pada Gambar</h1>
+        <input type="file" id="imageInput" accept="image/*">
+        <br>
+        <input type="file" id="watermarkInput" accept="image/*">
+        <br>
+        <button onclick="applyWatermark()">Sisipkan Watermark</button>
+        <br>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const watermarkInput = document.getElementById('watermarkInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let baseImage = new Image();
+        let watermarkImage = new Image();
+
+        imageInput.addEventListener('change', handleImageUpload);
+        watermarkInput.addEventListener('change', handleWatermarkUpload);
+
+        function handleImageUpload(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                baseImage.src = e.target.result;
+                baseImage.onload = function() {
+                    drawImages();
+                }
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function handleWatermarkUpload(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                watermarkImage.src = e.target.result;
+                watermarkImage.onload = function() {
+                    drawImages();
+                }
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function drawImages() {
+            if (!baseImage.src || !watermarkImage.src) return;
+
+            canvas.width = baseImage.width;
+            canvas.height = baseImage.height;
+
+            ctx.drawImage(baseImage, 0, 0);
+
+            const scaleFactor = 0.2; // scale watermark to 20% of the base image width
+            const watermarkWidth = baseImage.width * scaleFactor;
+            const watermarkHeight = watermarkImage.height * (watermarkWidth / watermarkImage.width);
+
+            const x = canvas.width - watermarkWidth - 10; // right bottom corner
+            const y = canvas.height - watermarkHeight - 10;
+
+            ctx.globalAlpha = 0.5; // transparency
+            ctx.drawImage(watermarkImage, x, y, watermarkWidth, watermarkHeight);
+            ctx.globalAlpha = 1.0; // reset transparency
+        }
+
+        function applyWatermark() {
+            if (baseImage.src && watermarkImage.src) {
+                drawImages();
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'watermarked_image.png';
+                link.click();
+            } else {
+                alert('Silakan unggah gambar dan watermark terlebih dahulu.');
+            }
+        }
+    </script>
+</body>
+</html>
